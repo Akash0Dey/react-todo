@@ -1,5 +1,5 @@
 import { Component } from "react";
-
+import "./App.css";
 class Item extends Component {
   constructor(props) {
     super(props);
@@ -13,7 +13,7 @@ class Item extends Component {
     const { task, taskId, done } = this.props;
     return (
       <>
-        <div>
+        <div className="todo-item">
           <input
             type="checkbox"
             id={taskId}
@@ -70,13 +70,15 @@ class Input extends Component {
   render() {
     return (
       <>
-        <input
-          type="text"
-          placeholder={this.props.placeHolder}
-          value={this.state.value}
-          onChange={this.onChange}
-          onKeyDown={this.onKeyDown}
-        />
+        <div className="input">
+          <input
+            type="text"
+            placeholder={this.props.placeHolder}
+            value={this.state.value}
+            onChange={this.onChange}
+            onKeyDown={this.onKeyDown}
+          />
+        </div>
       </>
     );
   }
@@ -111,10 +113,10 @@ class Todo extends Component {
   render() {
     return (
       <>
-        <section>
-          <h1>{this.props.name || "Todo"}</h1>
+        <section className="todo">
+          <h2 className="todo-heading">{this.props.name || "Todo"}</h2>
           <Input onEnter={this.addItem} placeHolder="Add  a new Todo" />
-          <div>
+          <div className="todo-items">
             <Tasks items={this.state.items} onToggle={this.onToggle} />
           </div>
         </section>
@@ -143,10 +145,9 @@ class MultipleTodo extends Component {
   render() {
     return (
       <>
-        <section>
-          <h1></h1>
+        <section className="todos">
           <Input onEnter={this.addTodo} placeHolder="Enter list title" />
-          <div>
+          <div className="todos-section">
             {this.state.todos.map((todo) => {
               const { todo: name, todoId } = todo;
               return <Todo key={todoId} name={name} todoId={todoId} />;
