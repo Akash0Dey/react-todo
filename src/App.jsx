@@ -13,13 +13,15 @@ class Item extends Component {
     const { task, taskId, done } = this.props;
     return (
       <>
-        <input
-          type="checkbox"
-          id={taskId}
-          checked={done}
-          onChange={this.onClick}
-        />
-        <label htmlFor={taskId}>{task}</label>
+        <div>
+          <input
+            type="checkbox"
+            id={taskId}
+            checked={done}
+            onChange={this.onClick}
+          />
+          <label htmlFor={taskId}>{task}</label>
+        </div>
       </>
     );
   }
@@ -70,6 +72,7 @@ class Input extends Component {
       <>
         <input
           type="text"
+          placeholder={this.props.placeHolder}
           value={this.state.value}
           onChange={this.onChange}
           onKeyDown={this.onKeyDown}
@@ -83,8 +86,8 @@ class Todo extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      items: [{ task: "buy milk", taskId: 1, done: true }],
-      id: 2,
+      items: [],
+      id: 1,
     };
     this.onToggle = this.onToggle.bind(this);
     this.addItem = this.addItem.bind(this);
@@ -108,12 +111,51 @@ class Todo extends Component {
   render() {
     return (
       <>
-        <h1>Todo</h1>
-        <Input onEnter={this.addItem} />
-        <Tasks items={this.state.items} onToggle={this.onToggle} />
+        <section>
+          <h1>{this.props.name || "Todo"}</h1>
+          <Input onEnter={this.addItem} placeHolder="Add  a new Todo" />
+          <div>
+            <Tasks items={this.state.items} onToggle={this.onToggle} />
+          </div>
+        </section>
       </>
     );
   }
 }
 
-export default Todo;
+class MultipleTodo extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      todos: [],
+      id: 1,
+    };
+    this.addTodo = this.addTodo.bind(this);
+  }
+
+  addTodo(todo) {
+    this.setState((prev) => {
+      const newTodo = { todo, todoId: prev.id, done: false };
+      return { todos: [...prev.todos, newTodo], id: prev.id + 1 };
+    });
+  }
+
+  render() {
+    return (
+      <>
+        <section>
+          <h1></h1>
+          <Input onEnter={this.addTodo} placeHolder="Enter list title" />
+          <div>
+            {this.state.todos.map((todo) => {
+              const { todo: name, todoId } = todo;
+              return <Todo key={todoId} name={name} todoId={todoId} />;
+            })}
+          </div>
+        </section>
+      </>
+    );
+  }
+}
+
+export default MultipleTodo;
