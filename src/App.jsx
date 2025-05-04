@@ -87,27 +87,6 @@ class Input extends Component {
 class Todo extends Component {
   constructor(props) {
     super(props);
-    this.state = {
-      items: [],
-      id: 1,
-    };
-    this.onToggle = this.onToggle.bind(this);
-    this.addItem = this.addItem.bind(this);
-  }
-
-  addItem(task) {
-    this.setState((prev) => {
-      const newTask = { task, taskId: prev.id, done: false };
-      return { items: [...prev.items, newTask], id: prev.id + 1 };
-    });
-  }
-
-  onToggle(taskId) {
-    this.setState((prev) => ({
-      items: prev.items.map((item) =>
-        item.taskId === taskId ? { ...item, done: !item.done } : item
-      ),
-    }));
   }
 
   render() {
@@ -115,9 +94,9 @@ class Todo extends Component {
       <>
         <section className="todo">
           <h2 className="todo-heading">{this.props.name || "Todo"}</h2>
-          <Input onEnter={this.addItem} placeHolder="Add  a new Todo" />
+          <Input onEnter={this.props.addItem} placeHolder="Add  a new Todo" />
           <div className="todo-items">
-            <Tasks items={this.state.items} onToggle={this.onToggle} />
+            <Tasks items={this.props.items} onToggle={this.props.onToggle} />
           </div>
         </section>
       </>
@@ -128,17 +107,57 @@ class Todo extends Component {
 class MultipleTodo extends Component {
   constructor(props) {
     super(props);
-    this.state = {
-      todos: [],
-      id: 1,
-    };
+    this.state = { todos: [], taskId: 1, todoId: 1 };
     this.addTodo = this.addTodo.bind(this);
+    this.addItem = this.addItem.bind(this);
+    this.onToggle = this.onToggle.bind(this);
+  }
+
+  onToggle(todoId) {
+    const toggleTaskInTodo = (todoId, taskId) => (todo) =>
+      todo.todoId !== todoId
+        ? todo
+        : {
+            ...todo,
+            items: todo.items.map((item) =>
+              item.taskId === taskId ? { ...item, done: !item.done } : item
+            ),
+          };
+    return (taskId) => {
+      this.setState((prev) => ({
+        ...prev,
+        todos: prev.todos.map(toggleTaskInTodo(todoId, taskId)),
+        taskId: prev.taskId + 1,
+      }));
+    };
+  }
+
+  addItem(todoId) {
+    const addTaskInTodo = (newTask) => (todo) =>
+      todo.todoId !== todoId
+        ? todo
+        : { ...todo, items: [...todo.items, newTask] };
+
+    return (task) => {
+      this.setState((prev) => {
+        const newTask = { task, taskId: prev.taskId, done: false };
+        return {
+          ...prev,
+          todos: prev.todos.map(addTaskInTodo(newTask)),
+          taskId: prev.taskId + 1,
+        };
+      });
+    };
   }
 
   addTodo(todo) {
     this.setState((prev) => {
-      const newTodo = { todo, todoId: prev.id, done: false };
-      return { todos: [...prev.todos, newTodo], id: prev.id + 1 };
+      const newTodo = { todo, todoId: prev.todoId, items: [] };
+      return {
+        ...prev,
+        todos: [...prev.todos, newTodo],
+        todoId: prev.todoId + 1,
+      };
     });
   }
 
@@ -149,8 +168,17 @@ class MultipleTodo extends Component {
           <Input onEnter={this.addTodo} placeHolder="Enter list title" />
           <div className="todos-section">
             {this.state.todos.map((todo) => {
-              const { todo: name, todoId } = todo;
-              return <Todo key={todoId} name={name} todoId={todoId} />;
+              const { todo: name, todoId, items } = todo;
+              return (
+                <Todo
+                  key={todoId}
+                  name={name}
+                  todoId={todoId}
+                  items={items}
+                  addItem={this.addItem(todoId)}
+                  onToggle={this.onToggle(todoId)}
+                />
+              );
             })}
           </div>
         </section>
