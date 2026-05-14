@@ -1,0 +1,48 @@
+name: Conditional Manual Gate
+
+on:
+  workflow_dispatch:
+    inputs:
+      requires_approval:
+        description: 'Does this run require human sign-off?'
+        type: boolean
+        default: true
+
+jobs:
+  # --- The Evaluator ---
+  # Captures the UI input and formats it for downstream logic
+  evaluate_gate:
+    runs-on: ubuntu-latest
+    outputs:
+      should_gate: ${{ steps.set_flag.outputs.gate }}
+    steps:
+      - id: set_flag
+        run: echo "gate=${{ github.event.inputs.requires_approval }}" >> $GITHUB_OUTPUT
+
+  # --- The Native Gate ---
+  # This job only runs if approval was requested. 
+  # It targets the protected environment to force the manual trigger.
+  approval_gate:
+    needs: evaluate_gate
+    if: needs: evaluate_gate.outputs.should_gate == 'true'
+    runs-on: ubuntu-latest
+    environment: protect # This environment must have "Required Reviewers" enabled
+    steps:
+      - name: Awaiting Approval
+        run: echo "Manual sign-off received. Proceeding..."
+
+  # --- The Target Task ---
+  # Runs after the gate. The 'always()' and 'needs' logic ensures it executes 
+  # regardless of whether 'approval_gate' was skipped or successful.
+  execute_deployment:
+    needs: [evaluate_gate, approval_gate]
+    if: |
+      always() && 
+      needs.evaluate_gate.result == 'success' && 
+      (needs.approval_gate.result == 'success' || needs.approval_gate.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Final Task
+        run: |
+          echo "Executing the main workflow logic."
+          echo "Gate was bypassed or approved successfully."
