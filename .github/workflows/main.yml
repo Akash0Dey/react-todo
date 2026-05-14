@@ -24,7 +24,7 @@ jobs:
     # FIXED: Removed the extra colon after 'needs'
     if: needs.evaluate_gate.outputs.should_gate == 'true'
     runs-on: ubuntu-latest
-    environment: production
+    environment: protect
     steps:
       - name: Awaiting Approval
         run: echo "Manual sign-off received. Proceeding..."
